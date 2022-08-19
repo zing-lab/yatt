@@ -10,7 +10,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 
-	"github.com/Kimbbakar/yatt/repository"
+	"github.com/zing-lab/yatt/repository"
 )
 
 var (

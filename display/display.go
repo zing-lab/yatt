@@ -3,9 +3,9 @@ package display
 import (
 	"strings"
 
-	"github.com/Kimbbakar/yatt/service"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"github.com/zing-lab/yatt/service"
 )
 
 var (
@@ -16,11 +16,7 @@ var (
 	noteId  map[int]string
 )
 
-func init() {
-	initDisplay()
-}
-
-func initDisplay() {
+func Show() {
 	srvc = service.NoteService{}
 	app = tview.NewApplication()
 	list = tview.NewList()
