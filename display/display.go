@@ -24,7 +24,7 @@ func initDisplay() {
 	srvc = service.NoteService{}
 	app = tview.NewApplication()
 	list = tview.NewList()
-	list.SetBorder(true).SetTitle("YATT [mark/unmark = enter | new note = crt + i | previous page = crt + o | next page = crt + p | flash = crt + f]").SetTitleAlign(tview.AlignLeft)
+	list.SetBorder(true).SetTitle("YATT [Help = ctrl + h]").SetTitleAlign(tview.AlignLeft)
 	renderListCommand()
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
@@ -45,6 +45,8 @@ func initDisplay() {
 			renderListCommand()
 		case tcell.KeyCtrlF:
 			flashCommnad()
+		case tcell.KeyCtrlH:
+			helpCommnad()
 		}
 		return event
 	})
@@ -79,11 +81,22 @@ func flashCommnad() {
 	modal := tview.NewModal().
 		SetText("Do you want to flash all notes?").
 		AddButtons([]string{"Yes", "No"}).
+		SetButtonBackgroundColor(tcell.ColorDarkRed).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Yes" {
 				srvc.FlashStorageCommand()
 				app.Stop()
 			}
+			app.SetRoot(list, true).SetFocus(list)
+		})
+	app.SetRoot(modal, true).SetFocus(modal)
+}
+
+func helpCommnad() {
+	modal := tview.NewModal().
+		SetText("Shortcut \n mark/unmark = enter \n new note = ctrl + i \n previous page = ctrl + o \n next page = ctrl + p \n flash = ctrl + f").
+		AddButtons([]string{"Ok"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			app.SetRoot(list, true).SetFocus(list)
 		})
 	app.SetRoot(modal, true).SetFocus(modal)
