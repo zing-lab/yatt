@@ -6,8 +6,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/spf13/cobra"
+	"github.com/dustin/go-humanize"
 
 	"github.com/Kimbbakar/yatt/repository"
 )
@@ -28,109 +29,91 @@ const (
 	DELETED = 5
 )
 
+type Note struct {
+	id          string
+	note        string
+	description string
+	date        time.Time
+	deleted     bool
+}
+
+func (n Note) GetID() string {
+	return n.id
+}
+
+func (n Note) GetDescription() string {
+	return n.description
+}
+
+func (n Note) String() string {
+	resp := "[ - ] "
+	if n.deleted {
+		resp = "[ √ ]"
+	}
+	return fmt.Sprintf("%s %s (%s)", resp, n.note, humanize.Time(n.date))
+}
+
 type NoteService struct {
 }
 
-func (n *NoteService) CreateCommand(cmd *cobra.Command, args []string) error {
+func (n *NoteService) CreateCommand(note, description string) error {
 	repo := repository.GetNewLocalStorage()
-
-	if note, err := cmd.Flags().GetString("note"); err != nil {
-		response(err.Error(), true, false, true)
-	} else if note = strings.TrimSpace(note); note != "" {
-		return repo.AddNote(note, "")
-	}
-
-	if note, err := cmd.Flags().GetString("note-with-description"); err != nil {
-		response(err.Error(), true, false, true)
-	} else if note = strings.TrimSpace(note); note != "" {
-		desc, err := n.inputDescription()
-		if err != nil {
-			response(err.Error(), true, false, true)
-		}
-
-		desc = strings.TrimSpace(desc)
-
-		return repo.AddNote(note, desc)
-	}
-
-	response("empty note not allowed", true, false, true)
-
-	return nil
+	return repo.AddNote(note, description)
 }
 
-func (n *NoteService) ListCommand(cmd *cobra.Command, args []string) error {
-	tail, _ := cmd.Flags().GetInt("tail")
-	if tail == 0 {
-		tail = 20
-	}
+func (n *NoteService) ListCommand(curPage int) []Note {
+	limit := 10
+	start, end, limit := curPage*limit, (curPage+1)*limit, limit
 
+	noteList := []Note{}
 	repo := repository.GetNewLocalStorage()
 	curSheet, err := repo.NextSheet("")
 	if err != nil {
 		response(err.Error(), true, false, true)
 	}
-	for {
-		if tail <= 0 || curSheet == "" {
-			break
-		}
-
+	for c := 0; !(limit <= 0 || curSheet == ""); {
 		notes, err := repo.ListNotes(curSheet)
 		if err != nil {
 			response(err.Error(), true, false, true)
 		}
 
-		for i := len(notes) - 1; i >= 0 && tail > 0; i-- {
-			if deleted, err := strconv.Atoi(notes[i][DELETED]); err != nil {
+		for i := len(notes) - 1; i >= 0 && limit > 0; i-- {
+			deleted, err := strconv.Atoi(notes[i][DELETED])
+			if err != nil {
 				response(err.Error(), true, false, true)
-			} else if deleted == 1 {
-				continue
 			}
 
-			fmt.Printf("ID: %s\n", notes[i][ID])
-			fmt.Printf("Date: %s\n\n", notes[i][DATE])
-			fmt.Print(prefixIndent2)
-			fmt.Printf("Note: %s\n", notes[i][NOTE])
-			if lines := strings.Split(notes[i][DESC], lineDevider); len(lines) > 0 {
-				for _, l := range lines {
-					fmt.Print(prefixIndent4, l)
-				}
-				fmt.Println()
+			if start <= c+i && c+i <= end {
+				createdAt, _ := time.Parse(time.RFC1123, notes[i][DATE])
+				noteList = append(noteList, Note{
+					id:          notes[i][ID],
+					note:        notes[i][NOTE],
+					deleted:     deleted == 1,
+					description: notes[i][DESC],
+					date:        createdAt,
+				})
+				limit--
 			}
 
-			tail--
-
-			fmt.Println()
 		}
 
+		c += len(notes)
 		curSheet, err = repo.NextSheet(curSheet)
 		if err != nil {
 			response(err.Error(), true, false, true)
 		}
 	}
 
-	return nil
+	return noteList
 }
 
-func (n *NoteService) FlashStorageCommand(cmd *cobra.Command, args []string) error {
-	var confirm string
+func (n *NoteService) FlashStorageCommand() error {
 	repo := repository.GetNewLocalStorage()
-
-	response("This will remove all preset note/config", false, true, true)
-	response("Are you sure you want to continue? [Y/n] ", false, true, false)
-	fmt.Scanf("%s", &confirm)
-	if !(confirm == "Y" || confirm == "n") {
-		response("Wrong input", true, false, true)
-	} else if confirm == "Y" {
-		repo.FlashStorage()
-		response("Storage flashed", false, false, true)
-	}
-
+	repo.FlashStorage()
 	return nil
 }
 
-func (n *NoteService) DeleteCommand(cmd *cobra.Command, args []string) error {
-	id := args[0]
-
+func (n *NoteService) ToggleCommand(id string) error {
 	repo := repository.GetNewLocalStorage()
 	curSheet, err := repo.NextSheet("")
 	if err != nil {
@@ -149,6 +132,7 @@ func (n *NoteService) DeleteCommand(cmd *cobra.Command, args []string) error {
 
 		for i := len(notes) - 1; i >= 0; i-- {
 			if strings.HasPrefix(notes[i][ID], id) {
+				deleted, _ := strconv.Atoi(notes[i][DELETED])
 				row := strings.Split(notes[i][KEY], "-")[2]
 
 				updateValue := make([]interface{}, len(notes[i]))
@@ -156,9 +140,9 @@ func (n *NoteService) DeleteCommand(cmd *cobra.Command, args []string) error {
 					updateValue[idx] = v
 				}
 
-				updateValue[DELETED] = true
+				updateValue[DELETED] = 1 - deleted
 				repo.UpdateNote(curSheet, row, updateValue)
-				response("Note has been deleted successfully", false, false, true)
+				response("Note has been updated successfully", false, false, true)
 				return nil
 			}
 		}

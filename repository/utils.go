@@ -11,7 +11,7 @@ var (
 	once     sync.Once
 	lStorage *localStorageRepo
 	appName  = "YATT"
-	filePath = "/.yatt/"
+	filePath = "~/.yatt/"
 	fileName = "storage.xlsx"
 	rowLimit = 20
 )
