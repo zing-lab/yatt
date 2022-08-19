@@ -1,4 +1,4 @@
-module github.com/Kimbbakar/yatt
+module github.com/zing-lab/yatt
 
 go 1.18
 
