@@ -4,7 +4,7 @@ A light weight command line note taking tools.
 
 #### Installation && Command
 ```
-go install github.com/zing-lab/yatt
+go install github.com/zing-lab/yatt@latest
 yatt
 ```
 
