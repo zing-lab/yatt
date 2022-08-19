@@ -1,11 +1,18 @@
 package repository
 
 import (
+	"os"
 	"strings"
 	"sync"
 
 	"github.com/google/uuid"
 )
+
+func init() {
+	if path, err := os.UserHomeDir(); err == nil {
+		filePath = path + "/.yatt/"
+	}
+}
 
 var (
 	once     sync.Once
