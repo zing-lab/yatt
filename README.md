@@ -8,5 +8,10 @@ go get github.com/Kimbbakar/yatt
 yatt
 ```
 
-#### Interface
-![Screenshot](Screenshot(1).png)
+#### Demo
+![yatt_record](https://user-images.githubusercontent.com/7036870/185541291-0b699e27-54de-4e34-a293-2b4a755b310e.gif)
+
+
+
+
+
