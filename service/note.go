@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -78,7 +77,7 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 		}
 
 		for i := len(notes) - 1; i >= 0 && limit > 0; i-- {
-			deleted, err := strconv.Atoi(notes[i][DELETED])
+			deleted := parseBoolean(notes[i][DELETED])
 			if err != nil {
 				response(err.Error(), true, false, true)
 			}
@@ -132,7 +131,7 @@ func (n *NoteService) ToggleCommand(id string) error {
 
 		for i := len(notes) - 1; i >= 0; i-- {
 			if strings.HasPrefix(notes[i][ID], id) {
-				deleted, _ := strconv.Atoi(notes[i][DELETED])
+				deleted := parseBoolean(notes[i][DELETED])
 				row := strings.Split(notes[i][KEY], "-")[2]
 
 				updateValue := make([]interface{}, len(notes[i]))
@@ -179,4 +178,13 @@ func (n *NoteService) inputDescription() (string, error) {
 	}
 
 	return details, nil
+}
+
+func parseBoolean(value string) int {
+	switch strings.ToLower(value) {
+	case "false", "0":
+		return 0
+	default:
+		return 1
+	}
 }

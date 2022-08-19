@@ -101,7 +101,7 @@ func helpCommnad() {
 func renderListCommand() {
 	noteId = map[int]string{}
 	idx := list.GetCurrentItem()
-
+	app.Stop()
 	list.Clear()
 	notes := srvc.ListCommand(curPage)
 	for idx, note := range notes {
