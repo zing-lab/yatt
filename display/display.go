@@ -5,7 +5,9 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+
 	"github.com/zing-lab/yatt/service"
+	"github.com/zing-lab/yatt/utils"
 )
 
 var (
@@ -37,10 +39,14 @@ func Show() {
 			}
 			renderListCommand()
 		case tcell.KeyCtrlP:
-			curPage++
+			if list.GetItemCount() > 0 {
+				curPage++
+			}
 			renderListCommand()
 		case tcell.KeyCtrlF:
 			flashCommnad()
+		case tcell.KeyCtrlS:
+			settingCommnad()
 		case tcell.KeyCtrlH:
 			helpCommnad()
 		}
@@ -76,7 +82,7 @@ func createNoteCommand() {
 func flashCommnad() {
 	modal := tview.NewModal().
 		SetText("Do you want to flash all notes?").
-		AddButtons([]string{"Yes", "No"}).
+		AddButtons([]string{"No", "Yes"}).
 		SetButtonBackgroundColor(tcell.ColorDarkRed).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			if buttonLabel == "Yes" {
@@ -88,9 +94,28 @@ func flashCommnad() {
 	app.SetRoot(modal, true).SetFocus(modal)
 }
 
+func settingCommnad() {
+	form := tview.NewForm().
+		AddCheckbox("Marked Only", utils.ParseBoolean(srvc.GetConfig("marked_only")) == 1, nil)
+	form.GetFormItemByLabel("Marked Only").(*tview.Checkbox).SetCheckedString("√")
+
+	app.SetRoot(form, true).SetFocus(form)
+
+	form = form.AddButton("Save", func() {
+		checkbox := (form.GetFormItemByLabel("Marked Only").(*tview.Checkbox))
+		srvc.SetConfig("marked_only", checkbox.IsChecked())
+
+		curPage = 0
+		renderListCommand()
+		app.SetRoot(list, true).SetFocus(list)
+	}).AddButton("Cancel", func() {
+		app.SetRoot(list, true).SetFocus(list)
+	})
+}
+
 func helpCommnad() {
 	modal := tview.NewModal().
-		SetText("Shortcut \n mark/unmark = enter \n new note = ctrl + i \n previous page = ctrl + o \n next page = ctrl + p \n flash = ctrl + f").
+		SetText("Shortcut \n Mark/Unmark = Enter \n New note = Ctrl + i \n Previous page = Ctrl + o \n Next page = Ctrl + p \n Flash = Ctrl + f \n Setting = Ctrl + s").
 		AddButtons([]string{"Ok"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			app.SetRoot(list, true).SetFocus(list)
@@ -107,6 +132,10 @@ func renderListCommand() {
 	for idx, note := range notes {
 		noteId[idx] = note.GetID()
 		list = list.AddItem(note.String(), note.GetDescription(), rune(0), nil)
+	}
+
+	if idx > len(notes) {
+		idx = len(notes) - 1
 	}
 
 	list.SetCurrentItem(idx)

@@ -10,6 +10,7 @@ import (
 	"github.com/dustin/go-humanize"
 
 	"github.com/zing-lab/yatt/repository"
+	"github.com/zing-lab/yatt/utils"
 )
 
 var (
@@ -61,42 +62,48 @@ func (n *NoteService) CreateCommand(note, description string) error {
 }
 
 func (n *NoteService) ListCommand(curPage int) []Note {
+	repo := repository.GetNewLocalStorage()
+
 	limit := 10
 	start, end, limit := curPage*limit, (curPage+1)*limit, limit
-
+	markedOnly := utils.ParseBoolean(repo.GetConfig("marked_only"))
 	noteList := []Note{}
-	repo := repository.GetNewLocalStorage()
+
 	curSheet, err := repo.NextSheet("")
 	if err != nil {
 		response(err.Error(), true, false, true)
 	}
-	for c := 0; !(limit <= 0 || curSheet == ""); {
+	for count := 0; !(limit <= 0 || curSheet == ""); {
 		notes, err := repo.ListNotes(curSheet)
 		if err != nil {
 			response(err.Error(), true, false, true)
 		}
 
 		for i := len(notes) - 1; i >= 0 && limit > 0; i-- {
-			deleted := parseBoolean(notes[i][DELETED])
+			deleted := utils.ParseBoolean(notes[i][DELETED])
 			if err != nil {
 				response(err.Error(), true, false, true)
 			}
 
-			if start <= c+i && c+i <= end {
-				createdAt, _ := time.Parse(time.RFC1123, notes[i][DATE])
-				noteList = append(noteList, Note{
-					id:          notes[i][ID],
-					note:        notes[i][NOTE],
-					deleted:     deleted == 1,
-					description: notes[i][DESC],
-					date:        createdAt,
-				})
-				limit--
+			count++
+			if !(start <= count && count <= end) {
+				continue
+			} else if markedOnly == 1 && deleted == 1 {
+				start, end = start+1, end+1
+				continue
 			}
 
+			limit--
+			createdAt, _ := time.Parse(time.RFC1123, notes[i][DATE])
+			noteList = append(noteList, Note{
+				id:          notes[i][ID],
+				note:        notes[i][NOTE],
+				deleted:     deleted == 1,
+				description: notes[i][DESC],
+				date:        createdAt,
+			})
 		}
 
-		c += len(notes)
 		curSheet, err = repo.NextSheet(curSheet)
 		if err != nil {
 			response(err.Error(), true, false, true)
@@ -131,7 +138,7 @@ func (n *NoteService) ToggleCommand(id string) error {
 
 		for i := len(notes) - 1; i >= 0; i-- {
 			if strings.HasPrefix(notes[i][ID], id) {
-				deleted := parseBoolean(notes[i][DELETED])
+				deleted := utils.ParseBoolean(notes[i][DELETED])
 				row := strings.Split(notes[i][KEY], "-")[2]
 
 				updateValue := make([]interface{}, len(notes[i]))
@@ -153,6 +160,21 @@ func (n *NoteService) ToggleCommand(id string) error {
 	}
 
 	response("No note found with given ID", false, false, true)
+	return nil
+}
+
+func (n *NoteService) GetConfig(key string) string {
+	repo := repository.GetNewLocalStorage()
+	return repo.GetConfig(key)
+}
+
+func (n *NoteService) SetConfig(key string, value interface{}) error {
+	repo := repository.GetNewLocalStorage()
+	if err := repo.SetConfig(key, value); err != nil {
+
+		return response("Failed to update setting", true, false, false)
+	}
+
 	return nil
 }
 
@@ -178,13 +200,4 @@ func (n *NoteService) inputDescription() (string, error) {
 	}
 
 	return details, nil
-}
-
-func parseBoolean(value string) int {
-	switch strings.ToLower(value) {
-	case "false", "0":
-		return 0
-	default:
-		return 1
-	}
 }

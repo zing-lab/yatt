@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/xuri/excelize/v2"
+
+	"github.com/zing-lab/yatt/utils"
 )
 
 type localStorageRepo struct {
@@ -39,7 +41,7 @@ func GetNewLocalStorage() *localStorageRepo {
 	return lStorage
 }
 
-func (l *localStorageRepo) getConfig(key string) string {
+func (l *localStorageRepo) GetConfig(key string) string {
 	v, err := l.client.GetCellValue(configSheet, "B"+configDetails[key]["row"])
 	if err != nil || v == "" {
 		v = configDetails[key]["default"]
@@ -48,7 +50,7 @@ func (l *localStorageRepo) getConfig(key string) string {
 	return v
 }
 
-func (l *localStorageRepo) setConfig(key string, value interface{}) error {
+func (l *localStorageRepo) SetConfig(key string, value interface{}) error {
 	if err := l.client.SetCellValue(configSheet, "A"+configDetails[key]["row"], key); err != nil {
 		return err
 	}
@@ -61,34 +63,34 @@ func (l *localStorageRepo) setConfig(key string, value interface{}) error {
 }
 
 func (l *localStorageRepo) getNewRow() (string, error) {
-	curRow, err := strconv.Atoi(l.getConfig("currentRow"))
+	curRow, err := strconv.Atoi(l.GetConfig("currentRow"))
 	if err != nil {
 		return "", err
 	}
 
-	l.setConfig("currentRow", curRow+1)
+	l.SetConfig("currentRow", curRow+1)
 	return "A" + strconv.Itoa(curRow+1), nil
 }
 
 func (l *localStorageRepo) getNoteSheet() (string, error) {
-	curRow, err := strconv.Atoi(l.getConfig("currentRow"))
+	curRow, err := strconv.Atoi(l.GetConfig("currentRow"))
 	if err != nil {
 		return "", err
 	}
 
-	curSheet, err := strconv.Atoi(l.getConfig("currentNoteSheet"))
+	curSheet, err := strconv.Atoi(l.GetConfig("currentNoteSheet"))
 	if err != nil {
 		return "", err
 	}
 
 	if curRow >= rowLimit {
 		curSheet++
-		l.setConfig("currentRow", 0)
+		l.SetConfig("currentRow", 0)
 	}
 
 	sheet := noteSheet + "-" + strconv.Itoa(curSheet)
 	l.client.NewSheet(sheet)
-	l.setConfig("currentNoteSheet", curSheet)
+	l.SetConfig("currentNoteSheet", curSheet)
 
 	return sheet, nil
 }
@@ -103,7 +105,7 @@ func (l *localStorageRepo) AddNote(note, description string) error {
 		return err
 	}
 	key := appName + "-" + strings.Split(sheet, "-")[1] + "-" + row
-	id := getUniqueID()
+	id := utils.GetUniqueID()
 	date := time.Now().Format(time.RFC1123)
 
 	// key - id - date - note - description - deleted

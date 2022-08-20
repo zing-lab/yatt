@@ -2,10 +2,7 @@ package repository
 
 import (
 	"os"
-	"strings"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 func init() {
@@ -37,9 +34,8 @@ var configDetails = map[string]map[string]string{
 		"default": "0",
 		"row":     "3",
 	},
-}
-
-func getUniqueID() string {
-	id := uuid.New().String()
-	return strings.Replace(id, "-", "", -1)
+	"marked_only": {
+		"default": "0",
+		"row":     "4",
+	},
 }
