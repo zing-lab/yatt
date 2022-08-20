@@ -128,7 +128,7 @@ func (l *localStorageRepo) ListNotes(sheetName string) ([][]string, error) {
 	return l.client.GetRows(sheetName)
 }
 
-func (l *localStorageRepo) FlashStorage() error {
+func (l *localStorageRepo) FlushStorage() error {
 	return os.RemoveAll(filePath)
 }
 

@@ -114,9 +114,9 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 	return noteList
 }
 
-func (n *NoteService) FlashStorageCommand() error {
+func (n *NoteService) FlushStorageCommand() error {
 	repo := repository.GetNewLocalStorage()
-	repo.FlashStorage()
+	repo.FlushStorage()
 	return nil
 }
 
