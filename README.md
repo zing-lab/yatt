@@ -9,9 +9,4 @@ yatt
 ```
 
 #### Demo
-![yatt_record](https://user-images.githubusercontent.com/7036870/185541291-0b699e27-54de-4e34-a293-2b4a755b310e.gif)
-
-
-
-
-
+![Yatt Demo](https://user-images.githubusercontent.com/7036870/185758103-759f88f0-5c1c-429c-98f9-32388980ff30.gif)
