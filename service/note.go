@@ -64,7 +64,7 @@ func (n *NoteService) CreateCommand(note, description string) error {
 func (n *NoteService) ListCommand(curPage int) []Note {
 	repo := repository.GetNewLocalStorage()
 
-	limit := 10
+	limit := utils.ParseInt(repo.GetConfig("per_page"))
 	start, end, limit := curPage*limit, (curPage+1)*limit, limit
 	markedOnly := utils.ParseBoolean(repo.GetConfig("marked_only"))
 	noteList := []Note{}
@@ -88,7 +88,7 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 			count++
 			if !(start <= count && count <= end) {
 				continue
-			} else if markedOnly == 1 && deleted == 1 {
+			} else if markedOnly && deleted {
 				start, end = start+1, end+1
 				continue
 			}
@@ -98,7 +98,7 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 			noteList = append(noteList, Note{
 				id:          notes[i][ID],
 				note:        notes[i][NOTE],
-				deleted:     deleted == 1,
+				deleted:     deleted,
 				description: notes[i][DESC],
 				date:        createdAt,
 			})
@@ -146,7 +146,7 @@ func (n *NoteService) ToggleCommand(id string) error {
 					updateValue[idx] = v
 				}
 
-				updateValue[DELETED] = 1 - deleted
+				updateValue[DELETED] = !deleted
 				repo.UpdateNote(curSheet, row, updateValue)
 				response("Note has been updated successfully", false, false, true)
 				return nil

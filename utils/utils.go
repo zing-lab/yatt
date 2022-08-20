@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -11,11 +12,20 @@ func GetUniqueID() string {
 	return strings.Replace(id, "-", "", -1)
 }
 
-func ParseBoolean(value string) int {
+func ParseBoolean(value string) bool {
 	switch strings.ToLower(value) {
 	case "false", "0":
-		return 0
+		return false
 	default:
-		return 1
+		return true
 	}
+}
+
+func ParseInt(str string) int {
+	value, err := strconv.Atoi(str)
+	if err != nil {
+		return 0
+	}
+
+	return value
 }

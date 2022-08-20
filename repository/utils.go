@@ -38,4 +38,8 @@ var configDetails = map[string]map[string]string{
 		"default": "0",
 		"row":     "4",
 	},
+	"per_page": {
+		"default": "10",
+		"row":     "5",
+	},
 }

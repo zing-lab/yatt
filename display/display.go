@@ -96,14 +96,23 @@ func flashCommnad() {
 
 func settingCommnad() {
 	form := tview.NewForm().
-		AddCheckbox("Marked Only", utils.ParseBoolean(srvc.GetConfig("marked_only")) == 1, nil)
+		AddCheckbox("Marked Only", utils.ParseBoolean(srvc.GetConfig("marked_only")), nil).
+		AddInputField("Per Page", srvc.GetConfig("per_page"), 5, nil, nil)
 	form.GetFormItemByLabel("Marked Only").(*tview.Checkbox).SetCheckedString("√")
 
 	app.SetRoot(form, true).SetFocus(form)
 
 	form = form.AddButton("Save", func() {
+		perPage := form.GetFormItemByLabel("Per Page").(*tview.InputField).GetText()
+		value := utils.ParseInt(perPage)
+		if value == 0 {
+			return
+		}
+
 		checkbox := (form.GetFormItemByLabel("Marked Only").(*tview.Checkbox))
+
 		srvc.SetConfig("marked_only", checkbox.IsChecked())
+		srvc.SetConfig("per_page", value)
 
 		curPage = 0
 		renderListCommand()
