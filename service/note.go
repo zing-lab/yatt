@@ -65,7 +65,7 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 	repo := repository.GetNewLocalStorage()
 
 	limit := utils.ParseInt(repo.GetConfig("per_page"))
-	start, end, limit := curPage*limit, (curPage+1)*limit, limit
+	start, end, limit := curPage*limit, (curPage+1)*limit-1, limit
 	markedOnly := utils.ParseBoolean(repo.GetConfig("marked_only"))
 	noteList := []Note{}
 
@@ -79,13 +79,12 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 			response(err.Error(), true, false, true)
 		}
 
-		for i := len(notes) - 1; i >= 0 && limit > 0; i-- {
+		for i := len(notes) - 1; i >= 0 && limit > 0; i, count = i-1, count+1 {
 			deleted := utils.ParseBoolean(notes[i][DELETED])
 			if err != nil {
 				response(err.Error(), true, false, true)
 			}
 
-			count++
 			if !(start <= count && count <= end) {
 				continue
 			} else if markedOnly && deleted {
