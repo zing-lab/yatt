@@ -22,7 +22,9 @@ func Show() {
 	srvc = service.NoteService{}
 	app = tview.NewApplication()
 	list = tview.NewList()
-	list.SetBorder(true).SetTitle("YATT [Help = Ctrl + h]").SetTitleAlign(tview.AlignLeft)
+	list.SetBorder(true).
+		SetTitle("YATT [HELP = Ctrl + h]").
+		SetTitleAlign(tview.AlignLeft)
 	renderListCommand()
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
@@ -60,8 +62,10 @@ func Show() {
 
 func createNoteCommand() {
 	form := tview.NewForm().
+		SetFieldBackgroundColor(tcell.ColorAntiqueWhite).
+		SetFieldTextColor(tcell.ColorBlack).
 		AddInputField("Note", "", 30, nil, nil).
-		AddInputField("Description", "", 50, nil, nil)
+		AddInputField("Description", "", 60, nil, nil)
 	app.SetRoot(form, true).SetFocus(form)
 
 	form = form.AddButton("Save", func() {
