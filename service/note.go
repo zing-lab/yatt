@@ -50,10 +50,20 @@ func (n Note) String() string {
 	if n.deleted {
 		resp = "[ √ ]"
 	}
-	return fmt.Sprintf("%s %s (%s)", resp, n.note, humanize.Time(n.date))
+	return fmt.Sprintf("%s %s (posted %s)", resp, n.note, humanize.Time(n.date))
 }
 
 type NoteService struct {
+}
+
+func (n *NoteService) SanitizeText(s string) string {
+	s = strings.TrimPrefix(s, "[ - ]")
+	s = strings.TrimPrefix(s, "[ √ ]")
+	if idx := strings.Index(s, "(posted"); idx != -1 {
+		s = s[:idx]
+	}
+	s = strings.TrimSpace(s)
+	return s
 }
 
 func (n *NoteService) CreateCommand(note, description string) error {
@@ -121,6 +131,22 @@ func (n *NoteService) FlushStorageCommand() error {
 }
 
 func (n *NoteService) ToggleCommand(id string) error {
+	return n.UpdateCommand(id, func(note []interface{}) []interface{} {
+		deleted := utils.ParseBoolean(note[DELETED].(string))
+		note[DELETED] = !deleted
+		return note
+	})
+}
+
+func (n *NoteService) EditCommand(id, title, description string) error {
+	return n.UpdateCommand(id, func(note []interface{}) []interface{} {
+		note[NOTE] = title
+		note[DESC] = description
+		return note
+	})
+}
+
+func (n *NoteService) UpdateCommand(id string, updateFunc func([]interface{}) []interface{}) error {
 	repo := repository.GetNewLocalStorage()
 	curSheet, err := repo.NextSheet("")
 	if err != nil {
@@ -136,19 +162,16 @@ func (n *NoteService) ToggleCommand(id string) error {
 		if err != nil {
 			response(err.Error(), true, false, true)
 		}
-
 		for i := len(notes) - 1; i >= 0; i-- {
 			if strings.HasPrefix(notes[i][ID], id) {
-				deleted := utils.ParseBoolean(notes[i][DELETED])
-				row := strings.Split(notes[i][KEY], "-")[2]
 
+				row := strings.Split(notes[i][KEY], "-")[2]
 				updateValue := make([]interface{}, len(notes[i]))
 				for idx, v := range notes[i] {
 					updateValue[idx] = v
 				}
 
-				updateValue[DELETED] = !deleted
-				repo.UpdateNote(curSheet, row, updateValue)
+				repo.UpdateNote(curSheet, row, updateFunc(updateValue))
 				response("Note has been updated successfully", false, false, true)
 				return nil
 			}

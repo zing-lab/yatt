@@ -34,7 +34,13 @@ func Show() {
 			srvc.ToggleCommand(id)
 			renderListCommand()
 		case tcell.KeyCtrlI:
-			createNoteCommand()
+			showNoteCommand(nil, "", "")
+		case tcell.KeyCtrlE:
+			idx := list.GetCurrentItem()
+			id := noteId[idx]
+
+			note, description := list.GetItemText(idx)
+			showNoteCommand(&id, note, description)
 		case tcell.KeyCtrlO:
 			if curPage > 0 {
 				curPage--
@@ -60,12 +66,13 @@ func Show() {
 	}
 }
 
-func createNoteCommand() {
+func showNoteCommand(id *string, note, description string) {
+	note = srvc.SanitizeText(note)
 	form := tview.NewForm().
 		SetFieldBackgroundColor(tcell.ColorAntiqueWhite).
 		SetFieldTextColor(tcell.ColorBlack).
-		AddInputField("Note", "", 30, nil, nil).
-		AddInputField("Description", "", 60, nil, nil)
+		AddInputField("Note", note, 30, nil, nil).
+		AddInputField("Description", description, 60, nil, nil)
 	app.SetRoot(form, true).SetFocus(form)
 
 	form = form.AddButton("Save", func() {
@@ -75,10 +82,18 @@ func createNoteCommand() {
 		}
 
 		description := form.GetFormItemByLabel("Description").(*tview.InputField).GetText()
-		srvc.CreateCommand(note, description)
+
+		if id == nil {
+			srvc.CreateCommand(note, description)
+		} else {
+			srvc.EditCommand(*id, note, description)
+		}
+
 		renderListCommand()
 		app.SetRoot(list, true).SetFocus(list)
-	}).AddButton("Quit", func() {
+	})
+
+	form = form.AddButton("Quit", func() {
 		app.SetRoot(list, true).SetFocus(list)
 	})
 }
@@ -128,7 +143,7 @@ func settingCommnad() {
 
 func helpCommnad() {
 	modal := tview.NewModal().
-		SetText("Shortcut \n Mark/Unmark = Enter \n New note = Ctrl + i \n Previous page = Ctrl + o \n Next page = Ctrl + p \n Flush = Ctrl + f \n Setting = Ctrl + s").
+		SetText("Shortcut \n Mark/Unmark = Enter \n New Note = Ctrl + i \n Edit Note = Ctrl + e \n Previous Page = Ctrl + o \n Next Page = Ctrl + p \n Flush = Ctrl + f \n Setting = Ctrl + s").
 		AddButtons([]string{"Ok"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			app.SetRoot(list, true).SetFocus(list)
