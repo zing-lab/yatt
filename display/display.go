@@ -23,7 +23,7 @@ func Show() {
 	app = tview.NewApplication()
 	list = tview.NewList()
 	list.SetBorder(true).
-		SetTitle("YATT [HELP = Ctrl + h]").
+		SetTitle("YATT [HELP = Ctrl + H]").
 		SetTitleAlign(tview.AlignLeft)
 	renderListCommand()
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -142,8 +142,21 @@ func settingCommnad() {
 }
 
 func helpCommnad() {
+	s := "Shortcut\n********"
+	addShortCutFunc := func(shortC string) {
+		s = s + "\n" + shortC
+	}
+
+	addShortCutFunc("Mark/Unmark = ENTER")
+	addShortCutFunc("New Note = CTRL + I")
+	addShortCutFunc("Edit Note = CTRL + E")
+	addShortCutFunc("Previous Page = CTRL + O")
+	addShortCutFunc("Next Page = CTRL + P")
+	addShortCutFunc("Flush = CTRL + F")
+	addShortCutFunc("Setting = CTRL + S")
+
 	modal := tview.NewModal().
-		SetText("Shortcut \n Mark/Unmark = Enter \n New Note = Ctrl + i \n Edit Note = Ctrl + e \n Previous Page = Ctrl + o \n Next Page = Ctrl + p \n Flush = Ctrl + f \n Setting = Ctrl + s").
+		SetText(s).
 		AddButtons([]string{"Ok"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			app.SetRoot(list, true).SetFocus(list)
