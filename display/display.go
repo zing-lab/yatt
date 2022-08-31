@@ -57,6 +57,8 @@ func Show() {
 			settingCommnad()
 		case tcell.KeyCtrlH:
 			helpCommnad()
+		case tcell.KeyESC:
+			app.Stop()
 		}
 		return event
 	})
@@ -90,7 +92,6 @@ func showNoteCommand(id *string, note, description string) {
 		}
 
 		renderListCommand()
-		app.SetRoot(list, true).SetFocus(list)
 	})
 
 	form = form.AddButton("Quit", func() {
@@ -135,7 +136,6 @@ func settingCommnad() {
 
 		curPage = 0
 		renderListCommand()
-		app.SetRoot(list, true).SetFocus(list)
 	}).AddButton("Cancel", func() {
 		app.SetRoot(list, true).SetFocus(list)
 	})
@@ -159,7 +159,7 @@ func helpCommnad() {
 		SetText(s).
 		AddButtons([]string{"Ok"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			app.SetRoot(list, true).SetFocus(list)
+			renderListCommand()
 		})
 	app.SetRoot(modal, true).SetFocus(modal)
 }
@@ -180,4 +180,6 @@ func renderListCommand() {
 	}
 
 	list.SetCurrentItem(idx)
+
+	app.SetRoot(list, true).SetFocus(list)
 }
