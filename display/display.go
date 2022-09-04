@@ -116,9 +116,9 @@ func flushCommnad() {
 
 func settingCommnad() {
 	form := tview.NewForm().
-		AddCheckbox("Marked Only", utils.ParseBoolean(srvc.GetConfig("marked_only")), nil).
+		AddCheckbox("Show Marked Only", utils.ParseBoolean(srvc.GetConfig("marked_only")), nil).
 		AddInputField("Per Page", srvc.GetConfig("per_page"), 5, nil, nil)
-	form.GetFormItemByLabel("Marked Only").(*tview.Checkbox).SetCheckedString("√")
+	form.GetFormItemByLabel("Show Marked Only").(*tview.Checkbox).SetCheckedString("√")
 
 	app.SetRoot(form, true).SetFocus(form)
 
@@ -129,7 +129,7 @@ func settingCommnad() {
 			return
 		}
 
-		checkbox := (form.GetFormItemByLabel("Marked Only").(*tview.Checkbox))
+		checkbox := (form.GetFormItemByLabel("Show Marked Only").(*tview.Checkbox))
 
 		srvc.SetConfig("marked_only", checkbox.IsChecked())
 		srvc.SetConfig("per_page", value)
@@ -180,6 +180,5 @@ func renderListCommand() {
 	}
 
 	list.SetCurrentItem(idx)
-
 	app.SetRoot(list, true).SetFocus(list)
 }
