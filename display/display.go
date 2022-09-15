@@ -77,7 +77,7 @@ func showNoteCommand(id *string, note, description string) {
 		AddInputField("Description", description, 60, nil, nil)
 	app.SetRoot(form, true).SetFocus(form)
 
-	form = form.AddButton("Save", func() {
+	form = form.AddButton(Save, func() {
 		note := form.GetFormItemByLabel("Note").(*tview.InputField).GetText()
 		if note = strings.TrimSpace(note); note == "" {
 			return
@@ -116,27 +116,27 @@ func flushCommnad() {
 
 func settingCommnad() {
 	form := tview.NewForm().
-		AddCheckbox("Show Marked Only", utils.ParseBoolean(srvc.GetConfig("marked_only")), nil).
-		AddInputField("Per Page", srvc.GetConfig("per_page"), 5, nil, nil)
-	form.GetFormItemByLabel("Show Marked Only").(*tview.Checkbox).SetCheckedString("√")
+		AddCheckbox(ShowMarkedOnly, utils.ParseBoolean(srvc.GetConfig(utils.MarkedOnly)), nil).
+		AddInputField(PerPage, srvc.GetConfig(utils.PerPage), 5, nil, nil)
+	form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox).SetCheckedString("√")
 
 	app.SetRoot(form, true).SetFocus(form)
 
-	form = form.AddButton("Save", func() {
-		perPage := form.GetFormItemByLabel("Per Page").(*tview.InputField).GetText()
+	form = form.AddButton(Save, func() {
+		perPage := form.GetFormItemByLabel(PerPage).(*tview.InputField).GetText()
 		value := utils.ParseInt(perPage)
 		if value == 0 {
 			return
 		}
 
-		checkbox := (form.GetFormItemByLabel("Show Marked Only").(*tview.Checkbox))
+		checkbox := (form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox))
 
-		srvc.SetConfig("marked_only", checkbox.IsChecked())
-		srvc.SetConfig("per_page", value)
+		srvc.SetConfig(utils.MarkedOnly, checkbox.IsChecked())
+		srvc.SetConfig(utils.PerPage, value)
 
 		curPage = 0
 		renderListCommand()
-	}).AddButton("Cancel", func() {
+	}).AddButton(Cancel, func() {
 		app.SetRoot(list, true).SetFocus(list)
 	})
 }

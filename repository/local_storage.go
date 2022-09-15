@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/xuri/excelize/v2"
-
 	"github.com/zing-lab/yatt/utils"
 )
 
@@ -41,7 +40,7 @@ func GetNewLocalStorage() *localStorageRepo {
 	return lStorage
 }
 
-func (l *localStorageRepo) GetConfig(key string) string {
+func (l *localStorageRepo) GetConfig(key utils.ConfigKey) string {
 	v, err := l.client.GetCellValue(configSheet, "B"+configDetails[key]["row"])
 	if err != nil || v == "" {
 		v = configDetails[key]["default"]
@@ -50,7 +49,7 @@ func (l *localStorageRepo) GetConfig(key string) string {
 	return v
 }
 
-func (l *localStorageRepo) SetConfig(key string, value interface{}) error {
+func (l *localStorageRepo) SetConfig(key utils.ConfigKey, value interface{}) error {
 	if err := l.client.SetCellValue(configSheet, "A"+configDetails[key]["row"], key); err != nil {
 		return err
 	}

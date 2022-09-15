@@ -187,12 +187,12 @@ func (n *NoteService) UpdateCommand(id string, updateFunc func([]interface{}) []
 	return nil
 }
 
-func (n *NoteService) GetConfig(key string) string {
+func (n *NoteService) GetConfig(key utils.ConfigKey) string {
 	repo := repository.GetNewLocalStorage()
 	return repo.GetConfig(key)
 }
 
-func (n *NoteService) SetConfig(key string, value interface{}) error {
+func (n *NoteService) SetConfig(key utils.ConfigKey, value interface{}) error {
 	repo := repository.GetNewLocalStorage()
 	if err := repo.SetConfig(key, value); err != nil {
 

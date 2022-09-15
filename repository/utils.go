@@ -3,6 +3,8 @@ package repository
 import (
 	"os"
 	"sync"
+
+	. "github.com/zing-lab/yatt/utils"
 )
 
 func init() {
@@ -25,20 +27,20 @@ const (
 	configSheet = "config"
 )
 
-var configDetails = map[string]map[string]string{
-	"currentRow": {
+var configDetails = map[ConfigKey]map[string]string{
+	CurrentRow: {
 		"default": "0",
 		"row":     "2",
 	},
-	"currentNoteSheet": {
+	CurrentNoteSheet: {
 		"default": "0",
 		"row":     "3",
 	},
-	"marked_only": {
+	MarkedOnly: {
 		"default": "0",
 		"row":     "4",
 	},
-	"per_page": {
+	PerPage: {
 		"default": "10",
 		"row":     "5",
 	},
