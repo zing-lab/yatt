@@ -62,34 +62,34 @@ func (l *localStorageRepo) SetConfig(key utils.ConfigKey, value interface{}) err
 }
 
 func (l *localStorageRepo) getNewRow() (string, error) {
-	curRow, err := strconv.Atoi(l.GetConfig("currentRow"))
+	curRow, err := strconv.Atoi(l.GetConfig(utils.CurrentRow))
 	if err != nil {
 		return "", err
 	}
 
-	l.SetConfig("currentRow", curRow+1)
+	l.SetConfig(utils.CurrentRow, curRow+1)
 	return "A" + strconv.Itoa(curRow+1), nil
 }
 
 func (l *localStorageRepo) getNoteSheet() (string, error) {
-	curRow, err := strconv.Atoi(l.GetConfig("currentRow"))
+	curRow, err := strconv.Atoi(l.GetConfig(utils.CurrentRow))
 	if err != nil {
 		return "", err
 	}
 
-	curSheet, err := strconv.Atoi(l.GetConfig("currentNoteSheet"))
+	curSheet, err := strconv.Atoi(l.GetConfig(utils.CurrentNoteSheet))
 	if err != nil {
 		return "", err
 	}
 
 	if curRow >= rowLimit {
 		curSheet++
-		l.SetConfig("currentRow", 0)
+		l.SetConfig(utils.CurrentRow, 0)
 	}
 
 	sheet := noteSheet + "-" + strconv.Itoa(curSheet)
 	l.client.NewSheet(sheet)
-	l.SetConfig("currentNoteSheet", curSheet)
+	l.SetConfig(utils.CurrentNoteSheet, curSheet)
 
 	return sheet, nil
 }
