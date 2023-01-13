@@ -27,6 +27,11 @@ const (
 	NOTE    = 3
 	DESC    = 4
 	DELETED = 5
+	TagIdx  = 6
+)
+
+const (
+	DefaultTagIdx = 0
 )
 
 type Note struct {
@@ -35,6 +40,7 @@ type Note struct {
 	description string
 	date        time.Time
 	deleted     bool
+	tagIndex    string
 }
 
 func (n Note) GetID() string {
@@ -74,6 +80,7 @@ func (n *NoteService) CreateCommand(note, description string) error {
 func (n *NoteService) ListCommand(curPage int) []Note {
 	repo := repository.GetNewLocalStorage()
 
+	curTagIdx := repo.GetCurrentTagIndex()
 	limit := utils.ParseInt(repo.GetConfig("per_page"))
 	start, end, limit := curPage*limit, (curPage+1)*limit-1, limit
 	markedOnly := utils.ParseBoolean(repo.GetConfig("marked_only"))
@@ -95,7 +102,12 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 				response(err.Error(), true, false, true)
 			}
 
-			if markedOnly && deleted {
+			noteTag := DefaultTagIdx
+			if len(notes[i]) > TagIdx {
+				noteTag = utils.ParseInt(notes[i][TagIdx])
+			}
+
+			if noteTag != curTagIdx || (markedOnly && deleted) {
 				start, end = start+1, end+1
 				continue
 			}
@@ -229,6 +241,12 @@ func (n *NoteService) inputDescription() (string, error) {
 func (n *NoteService) GetTagDetails() ([]string, int) {
 	repo := repository.GetNewLocalStorage()
 	return repo.GetTags(), repo.GetCurrentTagIndex()
+}
+
+func (n *NoteService) GetTagName() string {
+	repo := repository.GetNewLocalStorage()
+	tags, idx := repo.GetTags(), repo.GetCurrentTagIndex()
+	return strings.Title(tags[idx])
 }
 
 func (n *NoteService) AddNewTag(newTag string) int {

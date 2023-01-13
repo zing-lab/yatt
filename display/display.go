@@ -1,6 +1,7 @@
 package display
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -23,8 +24,10 @@ func Show() {
 	srvc = service.NoteService{}
 	app = tview.NewApplication()
 	list = tview.NewList()
+
+	title := fmt.Sprintf("YATT [HELP = Ctrl + H] [TAG = %s]", srvc.GetTagName())
 	list.SetBorder(true).
-		SetTitle("YATT [HELP = Ctrl + H]").
+		SetTitle(title).
 		SetTitleAlign(tview.AlignLeft)
 	renderListCommand()
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
