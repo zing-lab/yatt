@@ -12,12 +12,11 @@ import (
 )
 
 var (
-	curPage  int
-	app      *tview.Application
-	list     *tview.List
-	srvc     service.NoteService
-	noteId   map[int]string
-	lastPage tview.Primitive
+	curPage int
+	app     *tview.Application
+	list    *tview.List
+	srvc    service.NoteService
+	noteId  map[int]string
 )
 
 func Show() {
@@ -25,9 +24,7 @@ func Show() {
 	app = tview.NewApplication()
 	list = tview.NewList()
 
-	title := fmt.Sprintf("YATT [HELP = Ctrl + H] [TAG = %s]", srvc.GetTagName())
 	list.SetBorder(true).
-		SetTitle(title).
 		SetTitleAlign(tview.AlignLeft)
 	renderListCommand()
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -73,12 +70,24 @@ func Show() {
 }
 
 func showNoteCommand(id *string, note, description string) {
+	var noteObj *service.Note
+	if id != nil {
+		noteObj = srvc.GetNote(*id)
+	}
+
 	note = srvc.SanitizeText(note)
+	tags, curTagIdx := srvc.GetTagDetails()
 	form := tview.NewForm().
 		SetFieldBackgroundColor(tcell.ColorAntiqueWhite).
 		SetFieldTextColor(tcell.ColorBlack).
 		AddInputField("Note", note, 30, nil, nil).
 		AddInputField("Description", description, 60, nil, nil)
+
+	if noteObj != nil {
+		curTagIdx = noteObj.GetTag()
+	}
+
+	form = form.AddDropDown(CurrentTag, tags, curTagIdx, nil)
 	app.SetRoot(form, true).SetFocus(form)
 
 	form = form.AddButton(Save, func() {
@@ -88,11 +97,12 @@ func showNoteCommand(id *string, note, description string) {
 		}
 
 		description := form.GetFormItemByLabel("Description").(*tview.InputField).GetText()
+		curTagIdx, _ = form.GetFormItemByLabel(CurrentTag).(*tview.DropDown).GetCurrentOption()
 
 		if id == nil {
-			srvc.CreateCommand(note, description)
+			srvc.CreateCommand(note, description, curTagIdx)
 		} else {
-			srvc.EditCommand(*id, note, description)
+			srvc.EditCommand(*id, note, description, curTagIdx)
 		}
 
 		renderListCommand()
@@ -209,6 +219,12 @@ func renderListCommand() {
 		idx = len(notes) - 1
 	}
 
+	setTitle()
 	list.SetCurrentItem(idx)
 	app.SetRoot(list, true).SetFocus(list)
+}
+
+func setTitle() {
+	title := fmt.Sprintf("YATT [HELP = Ctrl + H] [TAG = %s]", srvc.GetTagName())
+	list.SetTitle(title)
 }

@@ -1,9 +1,7 @@
 package service
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -28,6 +26,7 @@ const (
 	DESC    = 4
 	DELETED = 5
 	TagIdx  = 6
+	MaxLen  = 7
 )
 
 const (
@@ -40,7 +39,7 @@ type Note struct {
 	description string
 	date        time.Time
 	deleted     bool
-	tagIndex    string
+	tagIndex    int
 }
 
 func (n Note) GetID() string {
@@ -49,6 +48,10 @@ func (n Note) GetID() string {
 
 func (n Note) GetDescription() string {
 	return n.description
+}
+
+func (n Note) GetTag() int {
+	return n.tagIndex
 }
 
 func (n Note) String() string {
@@ -72,9 +75,9 @@ func (n *NoteService) SanitizeText(s string) string {
 	return s
 }
 
-func (n *NoteService) CreateCommand(note, description string) error {
+func (n *NoteService) CreateCommand(note, description string, tagID int) error {
 	repo := repository.GetNewLocalStorage()
-	return repo.AddNote(note, description)
+	return repo.AddNote(note, description, tagID)
 }
 
 func (n *NoteService) ListCommand(curPage int) []Note {
@@ -124,6 +127,7 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 				deleted:     deleted,
 				description: notes[i][DESC],
 				date:        createdAt,
+				tagIndex:    noteTag,
 			})
 		}
 
@@ -150,12 +154,63 @@ func (n *NoteService) ToggleCommand(id string) error {
 	})
 }
 
-func (n *NoteService) EditCommand(id, title, description string) error {
+func (n *NoteService) EditCommand(id, title, description string, tagIdx int) error {
 	return n.UpdateCommand(id, func(note []interface{}) []interface{} {
 		note[NOTE] = title
 		note[DESC] = description
+		note[TagIdx] = tagIdx
 		return note
 	})
+}
+
+func (n *NoteService) GetNote(id string) *Note {
+	repo := repository.GetNewLocalStorage()
+	curSheet, err := repo.NextSheet("")
+	if err != nil {
+		response(err.Error(), true, false, true)
+	}
+
+	for {
+		if curSheet == "" {
+			break
+		}
+
+		notes, err := repo.ListNotes(curSheet)
+		if err != nil {
+			response(err.Error(), true, false, true)
+		}
+		for i := len(notes) - 1; i >= 0; i-- {
+			if strings.HasPrefix(notes[i][ID], id) {
+				noteTag := DefaultTagIdx
+				if len(notes[i]) > TagIdx {
+					noteTag = utils.ParseInt(notes[i][TagIdx])
+				}
+
+				deleted := utils.ParseBoolean(notes[i][DELETED])
+				if err != nil {
+					response(err.Error(), true, false, true)
+				}
+
+				createdAt, _ := time.Parse(time.RFC1123, notes[i][DATE])
+				return &Note{
+					id:          notes[i][ID],
+					note:        notes[i][NOTE],
+					deleted:     deleted,
+					description: notes[i][DESC],
+					date:        createdAt,
+					tagIndex:    noteTag,
+				}
+			}
+		}
+
+		curSheet, err = repo.NextSheet(curSheet)
+		if err != nil {
+			response(err.Error(), true, false, true)
+		}
+	}
+
+	response("No note found with given ID", false, false, true)
+	return nil
 }
 
 func (n *NoteService) UpdateCommand(id string, updateFunc func([]interface{}) []interface{}) error {
@@ -178,7 +233,7 @@ func (n *NoteService) UpdateCommand(id string, updateFunc func([]interface{}) []
 			if strings.HasPrefix(notes[i][ID], id) {
 
 				row := strings.Split(notes[i][KEY], "-")[2]
-				updateValue := make([]interface{}, len(notes[i]))
+				updateValue := make([]interface{}, MaxLen)
 				for idx, v := range notes[i] {
 					updateValue[idx] = v
 				}
@@ -212,30 +267,6 @@ func (n *NoteService) SetConfig(key utils.ConfigKey, value interface{}) error {
 	}
 
 	return nil
-}
-
-func (n *NoteService) inputDescription() (string, error) {
-	fmt.Println("\nAdd the description[entry empty line to terminate]")
-	in := bufio.NewReader(os.Stdin)
-	details := ""
-	for {
-		fmt.Print(prefixIndent4)
-		str, err := in.ReadString('\n')
-		str = strings.Trim(str, " ")
-
-		if err != nil {
-			return "", err
-		} else if str == "\n" {
-			break
-		}
-
-		if len(details) > 0 {
-			details += lineDevider
-		}
-		details += str
-	}
-
-	return details, nil
 }
 
 func (n *NoteService) GetTagDetails() ([]string, int) {
