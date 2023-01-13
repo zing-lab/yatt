@@ -44,4 +44,12 @@ var configDetails = map[ConfigKey]map[string]string{
 		"default": "10",
 		"row":     "5",
 	},
+	Tags: {
+		"default": "All,ToDo",
+		"row":     "6",
+	},
+	CurrentTagIdx: {
+		"default": "0",
+		"row":     "7",
+	},
 }

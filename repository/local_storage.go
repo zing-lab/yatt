@@ -147,3 +147,14 @@ func (l *localStorageRepo) NextSheet(sheetName string) (string, error) {
 	}
 	return data[0] + "-" + strconv.Itoa(curSheet-1), nil
 }
+
+func (l *localStorageRepo) GetTags() []string {
+	tags := l.GetConfig(utils.Tags)
+	return strings.Split(tags, ",")
+}
+
+func (l *localStorageRepo) GetCurrentTagIndex() int {
+	idxStr := l.GetConfig(utils.CurrentTagIdx)
+	idx, _ := strconv.Atoi(idxStr)
+	return idx
+}

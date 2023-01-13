@@ -225,3 +225,8 @@ func (n *NoteService) inputDescription() (string, error) {
 
 	return details, nil
 }
+
+func (n *NoteService) GetTagDetails() ([]string, int) {
+	repo := repository.GetNewLocalStorage()
+	return repo.GetTags(), repo.GetCurrentTagIndex()
+}

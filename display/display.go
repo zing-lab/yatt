@@ -52,11 +52,11 @@ func Show() {
 			}
 			renderListCommand()
 		case tcell.KeyCtrlF:
-			flushCommnad()
+			flushCommand()
 		case tcell.KeyCtrlS:
-			settingCommnad()
+			settingCommand()
 		case tcell.KeyCtrlH:
-			helpCommnad()
+			helpCommand()
 		case tcell.KeyESC:
 			app.Stop()
 		}
@@ -99,7 +99,7 @@ func showNoteCommand(id *string, note, description string) {
 	})
 }
 
-func flushCommnad() {
+func flushCommand() {
 	modal := tview.NewModal().
 		SetText("Do you want to flush all notes?").
 		AddButtons([]string{"No", "Yes"}).
@@ -114,12 +114,16 @@ func flushCommnad() {
 	app.SetRoot(modal, true).SetFocus(modal)
 }
 
-func settingCommnad() {
+func settingCommand() {
+	tags, curTagIdx := srvc.GetTagDetails()
 	form := tview.NewForm().
 		AddCheckbox(ShowMarkedOnly, utils.ParseBoolean(srvc.GetConfig(utils.MarkedOnly)), nil).
-		AddInputField(PerPage, srvc.GetConfig(utils.PerPage), 5, nil, nil)
-	form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox).SetCheckedString("√")
+		AddInputField(PerPage, srvc.GetConfig(utils.PerPage), 5, nil, nil).
+		AddDropDown(CurrentTag, tags, curTagIdx, func(_ string, optionIdx int) {
+			curTagIdx = optionIdx
+		})
 
+	form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox).SetCheckedString("√")
 	app.SetRoot(form, true).SetFocus(form)
 
 	form = form.AddButton(Save, func() {
@@ -133,6 +137,7 @@ func settingCommnad() {
 
 		srvc.SetConfig(utils.MarkedOnly, checkbox.IsChecked())
 		srvc.SetConfig(utils.PerPage, value)
+		srvc.SetConfig(utils.CurrentTagIdx, curTagIdx)
 
 		curPage = 0
 		renderListCommand()
@@ -141,7 +146,7 @@ func settingCommnad() {
 	})
 }
 
-func helpCommnad() {
+func helpCommand() {
 	s := "Shortcut\n********"
 	addShortCutFunc := func(shortC string) {
 		s = s + "\n" + shortC
