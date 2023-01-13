@@ -230,3 +230,25 @@ func (n *NoteService) GetTagDetails() ([]string, int) {
 	repo := repository.GetNewLocalStorage()
 	return repo.GetTags(), repo.GetCurrentTagIndex()
 }
+
+func (n *NoteService) AddNewTag(newTag string) int {
+	repo := repository.GetNewLocalStorage()
+	tags := repo.GetTags()
+
+	tags = append(tags, newTag)
+	repo.SetConfig(utils.Tags, strings.Join(tags, ","))
+	return len(tags) - 1
+}
+
+func (n *NoteService) IsTagValid(newTag string) error {
+	repo := repository.GetNewLocalStorage()
+	tags := repo.GetTags()
+
+	for _, tag := range tags {
+		if strings.EqualFold(tag, newTag) {
+			return fmt.Errorf("Tag#(%s) already exist", newTag)
+		}
+	}
+
+	return nil
+}

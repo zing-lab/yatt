@@ -11,11 +11,12 @@ import (
 )
 
 var (
-	curPage int
-	app     *tview.Application
-	list    *tview.List
-	srvc    service.NoteService
-	noteId  map[int]string
+	curPage  int
+	app      *tview.Application
+	list     *tview.List
+	srvc     service.NoteService
+	noteId   map[int]string
+	lastPage tview.Primitive
 )
 
 func Show() {
@@ -119,9 +120,8 @@ func settingCommand() {
 	form := tview.NewForm().
 		AddCheckbox(ShowMarkedOnly, utils.ParseBoolean(srvc.GetConfig(utils.MarkedOnly)), nil).
 		AddInputField(PerPage, srvc.GetConfig(utils.PerPage), 5, nil, nil).
-		AddDropDown(CurrentTag, tags, curTagIdx, func(_ string, optionIdx int) {
-			curTagIdx = optionIdx
-		})
+		AddInputField(NewTag, utils.EmptyString, 20, nil, nil).
+		AddDropDown(CurrentTag, tags, curTagIdx, nil)
 
 	form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox).SetCheckedString("√")
 	app.SetRoot(form, true).SetFocus(form)
@@ -130,6 +130,7 @@ func settingCommand() {
 		perPage := form.GetFormItemByLabel(PerPage).(*tview.InputField).GetText()
 		value := utils.ParseInt(perPage)
 		if value == 0 {
+			showModal("Per Page value should be a positive number!", form)
 			return
 		}
 
@@ -137,6 +138,16 @@ func settingCommand() {
 
 		srvc.SetConfig(utils.MarkedOnly, checkbox.IsChecked())
 		srvc.SetConfig(utils.PerPage, value)
+		curTagIdx, _ = form.GetFormItemByLabel(CurrentTag).(*tview.DropDown).GetCurrentOption()
+		if newTag := form.GetFormItemByLabel(NewTag).(*tview.InputField).GetText(); newTag != utils.EmptyString {
+			if err := srvc.IsTagValid(newTag); err != nil {
+				showModal(err.Error(), form)
+				return
+			}
+
+			curTagIdx = srvc.AddNewTag(newTag)
+		}
+
 		srvc.SetConfig(utils.CurrentTagIdx, curTagIdx)
 
 		curPage = 0
@@ -166,6 +177,17 @@ func helpCommand() {
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			renderListCommand()
 		})
+	app.SetRoot(modal, true).SetFocus(modal)
+}
+
+func showModal(txt string, backToPage tview.Primitive) {
+	modal := tview.NewModal().
+		SetText(txt).
+		AddButtons([]string{"Ok"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			app.SetRoot(backToPage, true).SetFocus(backToPage)
+		})
+
 	app.SetRoot(modal, true).SetFocus(modal)
 }
 

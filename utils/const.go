@@ -10,3 +10,7 @@ const (
 	Tags             ConfigKey = "tags"
 	CurrentTagIdx    ConfigKey = "current_tag_index"
 )
+
+const (
+	EmptyString = ""
+)

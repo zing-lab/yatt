@@ -29,3 +29,7 @@ func ParseInt(str string) int {
 
 	return value
 }
+
+func IsEmpty(str string) bool {
+	return strings.TrimSpace(str) == EmptyString
+}

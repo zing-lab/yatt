@@ -155,6 +155,5 @@ func (l *localStorageRepo) GetTags() []string {
 
 func (l *localStorageRepo) GetCurrentTagIndex() int {
 	idxStr := l.GetConfig(utils.CurrentTagIdx)
-	idx, _ := strconv.Atoi(idxStr)
-	return idx
+	return utils.ParseInt(idxStr)
 }
