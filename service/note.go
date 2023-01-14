@@ -84,9 +84,9 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 	repo := repository.GetNewLocalStorage()
 
 	curTagIdx := repo.GetCurrentTagIndex()
-	limit := utils.ParseInt(repo.GetConfig("per_page"))
+	limit := utils.ParseInt(repo.GetConfig(utils.PerPage))
 	start, end, limit := curPage*limit, (curPage+1)*limit-1, limit
-	markedOnly := utils.ParseBoolean(repo.GetConfig("marked_only"))
+	uncheckedOnly := utils.ParseBoolean(repo.GetConfig(utils.UncheckedOnly))
 	noteList := []Note{}
 
 	curSheet, err := repo.NextSheet("")
@@ -110,7 +110,7 @@ func (n *NoteService) ListCommand(curPage int) []Note {
 				noteTag = utils.ParseInt(notes[i][TagIdx])
 			}
 
-			if noteTag != curTagIdx || (markedOnly && deleted) {
+			if noteTag != curTagIdx || (uncheckedOnly && deleted) {
 				start, end = start+1, end+1
 				continue
 			}

@@ -5,7 +5,7 @@ type ConfigKey string
 const (
 	CurrentRow       ConfigKey = "currentRow"
 	CurrentNoteSheet ConfigKey = "currentNoteSheet"
-	MarkedOnly       ConfigKey = "marked_only"
+	UncheckedOnly    ConfigKey = "unchecked_only"
 	PerPage          ConfigKey = "per_page"
 	Tags             ConfigKey = "tags"
 	CurrentTagIdx    ConfigKey = "current_tag_index"

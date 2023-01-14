@@ -131,12 +131,12 @@ func flushCommand() {
 func settingCommand() {
 	tags, curTagIdx := srvc.GetTagDetails()
 	form := tview.NewForm().
-		AddCheckbox(ShowMarkedOnly, utils.ParseBoolean(srvc.GetConfig(utils.MarkedOnly)), nil).
+		AddCheckbox(ShowUncheckedOnly, utils.ParseBoolean(srvc.GetConfig(utils.UncheckedOnly)), nil).
 		AddInputField(PerPage, srvc.GetConfig(utils.PerPage), 5, nil, nil).
 		AddInputField(NewTag, utils.EmptyString, 20, nil, nil).
 		AddDropDown(CurrentTag, tags, curTagIdx, nil)
 
-	form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox).SetCheckedString("√")
+	form.GetFormItemByLabel(ShowUncheckedOnly).(*tview.Checkbox).SetCheckedString("√")
 	app.SetRoot(form, true).SetFocus(form)
 
 	form = form.AddButton(Save, func() {
@@ -147,9 +147,9 @@ func settingCommand() {
 			return
 		}
 
-		checkbox := (form.GetFormItemByLabel(ShowMarkedOnly).(*tview.Checkbox))
+		checkbox := (form.GetFormItemByLabel(ShowUncheckedOnly).(*tview.Checkbox))
 
-		srvc.SetConfig(utils.MarkedOnly, checkbox.IsChecked())
+		srvc.SetConfig(utils.UncheckedOnly, checkbox.IsChecked())
 		srvc.SetConfig(utils.PerPage, value)
 		curTagIdx, _ = form.GetFormItemByLabel(CurrentTag).(*tview.DropDown).GetCurrentOption()
 		if newTag := form.GetFormItemByLabel(NewTag).(*tview.InputField).GetText(); newTag != utils.EmptyString {
@@ -176,7 +176,7 @@ func helpCommand() {
 		s = s + "\n" + shortC
 	}
 
-	addShortCutFunc("Mark/Unmark = ENTER")
+	addShortCutFunc("Check/Uncheck = ENTER")
 	addShortCutFunc("New Note = CTRL + I")
 	addShortCutFunc("Edit Note = CTRL + E")
 	addShortCutFunc("Previous Page = CTRL + O")

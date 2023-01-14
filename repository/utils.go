@@ -36,7 +36,7 @@ var configDetails = map[ConfigKey]map[string]string{
 		"default": "0",
 		"row":     "3",
 	},
-	MarkedOnly: {
+	UncheckedOnly: {
 		"default": "0",
 		"row":     "4",
 	},
